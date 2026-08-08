@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
+	"mux-demo/internal/utils"
 	"net"
-	"time"
 )
 
 func main() {
@@ -14,5 +14,5 @@ func main() {
 
 	conn.Write([]byte("hi man\n"))
 
-	time.Sleep(500 * time.Millisecond)
+	utils.WriteFrame(conn, 1, 0, []byte("yo man"))
 }
