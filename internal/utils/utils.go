@@ -2,7 +2,8 @@ package utils
 
 import (
 	"encoding/binary"
-	"fmt"
+	"log"
+	"mux-demo/internal/headers"
 	"net"
 )
 
@@ -15,6 +16,38 @@ func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
 
 	copy(finalSlice[9:], payload)
 
-	fmt.Printf("%v\n", finalSlice)
-	fmt.Printf("%x\n", finalSlice)
+	conn.Write(finalSlice)
+}
+
+func ReadFrame(conn net.Conn) (headers.Header, string) {
+	header := make([]byte, 9)
+
+	buf := make([]byte, 512)
+	r, err := conn.Read(buf)
+	if err != nil {
+		log.Println("[server] Couldnt read client data", err.Error())
+		return headers.Header{}, ""
+	}
+
+	receivedData := buf[:r]
+
+	header = receivedData[:9]
+
+	streamId := binary.BigEndian.Uint32(header[0:4])
+	t_type := header[4]
+
+	data_length := binary.BigEndian.Uint32(header[5:])
+
+	data_slice := make([]byte, data_length)
+	copy(data_slice, receivedData[9:])
+
+	header_data := headers.Header{
+		StreamID: streamId,
+		Type:     t_type,
+		Length:   data_length,
+	}
+
+	res := string(data_slice)
+
+	return header_data, res
 }

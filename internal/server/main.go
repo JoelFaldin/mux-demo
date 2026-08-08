@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
+	"mux-demo/internal/utils"
 	"net"
 )
 
@@ -23,13 +23,11 @@ func main() {
 
 		fmt.Println("[server] Request accepted, processing...")
 
-		reader := bufio.NewReader(conn)
-		res, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("[server] Couldnt read client data", err.Error())
-		}
+		h, res := utils.ReadFrame(conn)
 
-		fmt.Println(res)
+		fmt.Println("Stream Id: ", h.StreamID)
+		fmt.Println("Type: ", h.Type)
+		fmt.Println("Data length: ", h.Length)
+		fmt.Println("Res: ", res)
 	}
-
 }

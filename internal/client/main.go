@@ -12,7 +12,5 @@ func main() {
 		log.Fatal("[client] Couldnt connect to server", err.Error())
 	}
 
-	conn.Write([]byte("hi man\n"))
-
 	utils.WriteFrame(conn, 1, 0, []byte("yo man"))
 }
