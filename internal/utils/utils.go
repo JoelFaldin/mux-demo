@@ -7,6 +7,9 @@ import (
 	"net"
 )
 
+// Used in the client
+// Given streamId, type and payload, WriteFrame builds a complete slice
+// with data to send to backend.
 func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
 	finalSlice := make([]byte, 9+len(payload))
 
@@ -19,6 +22,9 @@ func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
 	conn.Write(finalSlice)
 }
 
+// Used in the server
+// Prepares slices to read from net.Conn, and parses header
+// to extract data
 func ReadFrame(conn net.Conn) (headers.Header, string) {
 	header := make([]byte, 9)
 
