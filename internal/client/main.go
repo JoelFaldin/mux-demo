@@ -11,10 +11,9 @@ func main() {
 	if err != nil {
 		log.Fatal("[client] Couldnt connect to server", err.Error())
 	}
+	defer conn.Close()
 
 	utils.WriteFrame(conn, 1, 0, []byte("yo man"))
 	utils.WriteFrame(conn, 2, 0, []byte("yo man 1"))
 	utils.WriteFrame(conn, 1, 0, []byte("yo man 2"))
-
-	conn.Close()
 }
