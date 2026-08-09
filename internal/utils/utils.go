@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"mux-demo/internal/headers"
@@ -34,7 +33,6 @@ func ReadFrame(conn net.Conn) (headers.Header, string, error) {
 	_, err := io.ReadFull(conn, header)
 	if err != nil {
 		if errors.Is(io.EOF, err) {
-			fmt.Println("IT IS EOF ---------------------------")
 			return headers.Header{}, "", io.EOF
 		}
 

@@ -28,7 +28,7 @@ func main() {
 		for {
 			h, res, err := utils.ReadFrame(conn)
 			if err != nil && errors.Is(io.EOF, err) {
-				return
+				break
 			}
 
 			fmt.Println("Stream Id:", h.StreamID)
