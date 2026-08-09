@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"mux-demo/internal/utils"
 	"net"
@@ -23,11 +25,16 @@ func main() {
 
 		fmt.Println("[server] Request accepted, processing...")
 
-		h, res := utils.ReadFrame(conn)
+		for {
+			h, res, err := utils.ReadFrame(conn)
+			if err != nil && errors.Is(io.EOF, err) {
+				return
+			}
 
-		fmt.Println("Stream Id: ", h.StreamID)
-		fmt.Println("Type: ", h.Type)
-		fmt.Println("Data length: ", h.Length)
-		fmt.Println("Res: ", res)
+			fmt.Println("Stream Id:", h.StreamID)
+			fmt.Println("Type:", h.Type)
+			fmt.Println("Data length:", h.Length)
+			fmt.Println("Res:", res)
+		}
 	}
 }

@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/binary"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mux-demo/internal/headers"
@@ -26,11 +28,16 @@ func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
 // Used in the server
 // Prepares slices to read from net.Conn, and parses header
 // to extract data
-func ReadFrame(conn net.Conn) (headers.Header, string) {
+func ReadFrame(conn net.Conn) (headers.Header, string, error) {
 	header := make([]byte, 9)
 
 	_, err := io.ReadFull(conn, header)
 	if err != nil {
+		if errors.Is(io.EOF, err) {
+			fmt.Println("IT IS EOF ---------------------------")
+			return headers.Header{}, "", io.EOF
+		}
+
 		log.Println("[server] Error reading client data", err.Error())
 	}
 
@@ -43,7 +50,7 @@ func ReadFrame(conn net.Conn) (headers.Header, string) {
 	r, err := io.ReadFull(conn, buf)
 	if err != nil {
 		log.Println("[server] Couldnt read client data", err.Error())
-		return headers.Header{}, ""
+		return headers.Header{}, "", nil
 	}
 
 	receivedData := buf[:r]
@@ -59,5 +66,5 @@ func ReadFrame(conn net.Conn) (headers.Header, string) {
 
 	res := string(data_slice)
 
-	return header_data, res
+	return header_data, res, nil
 }

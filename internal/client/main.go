@@ -13,4 +13,8 @@ func main() {
 	}
 
 	utils.WriteFrame(conn, 1, 0, []byte("yo man"))
+	utils.WriteFrame(conn, 2, 0, []byte("yo man 1"))
+	utils.WriteFrame(conn, 1, 0, []byte("yo man 2"))
+
+	conn.Close()
 }
