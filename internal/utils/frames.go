@@ -27,13 +27,13 @@ func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
 // Used in the server
 // Prepares slices to read from net.Conn, and parses header
 // to extract data
-func ReadFrame(conn net.Conn) (models.Header, string, error) {
+func ReadFrame(conn net.Conn) (models.Header, []byte, error) {
 	header := make([]byte, 9)
 
 	_, err := io.ReadFull(conn, header)
 	if err != nil {
 		if errors.Is(io.EOF, err) {
-			return models.Header{}, "", io.EOF
+			return models.Header{}, nil, io.EOF
 		}
 
 		log.Println("[server] Error reading client data", err.Error())
@@ -48,7 +48,7 @@ func ReadFrame(conn net.Conn) (models.Header, string, error) {
 	r, err := io.ReadFull(conn, buf)
 	if err != nil {
 		log.Println("[server] Couldnt read client data", err.Error())
-		return models.Header{}, "", nil
+		return models.Header{}, nil, nil
 	}
 
 	receivedData := buf[:r]
@@ -62,7 +62,5 @@ func ReadFrame(conn net.Conn) (models.Header, string, error) {
 		Length:   data_length,
 	}
 
-	res := string(data_slice)
-
-	return header_data, res, nil
+	return header_data, data_slice, nil
 }
