@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"mux-demo/internal/models"
-	"mux-demo/internal/utils"
+	"mux-demo/internal/protocol"
 	"net"
 )
 
@@ -28,7 +28,7 @@ func main() {
 
 		d := models.NewData()
 		go func() {
-			stream := d.GetFrame(1)
+			stream := d.GetFrame(1, conn)
 			buf := make([]byte, 512)
 			for {
 				n, err := stream.Read(buf)
@@ -39,12 +39,12 @@ func main() {
 			}
 		}()
 		for {
-			h, res, err := utils.ReadFrame(conn)
+			h, res, err := protocol.ReadFrame(conn)
 			if err != nil && errors.Is(err, io.EOF) {
 				break
 			}
 
-			stream := d.GetFrame(h.StreamID)
+			stream := d.GetFrame(h.StreamID, conn)
 
 			stream.Chan <- res
 		}

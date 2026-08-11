@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"mux-demo/internal/utils"
+	"mux-demo/internal/protocol"
 	"net"
 )
 
@@ -13,7 +13,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	utils.WriteFrame(conn, 1, 0, []byte("yo man"))
-	utils.WriteFrame(conn, 2, 0, []byte("yo man 1"))
-	utils.WriteFrame(conn, 1, 0, []byte("yo man 2"))
+	protocol.WriteFrame(conn, 1, 0, []byte("yo man"))
+	protocol.WriteFrame(conn, 2, 0, []byte("yo man 1"))
+	protocol.WriteFrame(conn, 1, 0, []byte("yo man 2"))
 }

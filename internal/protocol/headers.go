@@ -1,4 +1,4 @@
-package models
+package protocol
 
 type Header struct {
 	StreamID uint32

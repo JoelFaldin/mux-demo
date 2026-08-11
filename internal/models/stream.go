@@ -4,20 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"mux-demo/internal/protocol"
+	"net"
 )
 
 type Stream struct {
 	StreamID uint32
 	Chan     chan []byte
-	LeftOver bytes.Buffer
+	leftOver bytes.Buffer
+	Conn     net.Conn
 }
 
 // Used in server
 // Offers an abstraction layer over Data,
 // hiding the channels logic.
 func (s *Stream) Read(p []byte) (n int, err error) {
-	if s.LeftOver.Len() != 0 {
-		n, err = s.LeftOver.Read(p)
+	if s.leftOver.Len() != 0 {
+		n, err = s.leftOver.Read(p)
 		if err != nil {
 			fmt.Println("[server] Error trying to read leftover", err.Error())
 		}
@@ -30,17 +33,21 @@ func (s *Stream) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	_, err = s.LeftOver.Write(data)
+	_, err = s.leftOver.Write(data)
 	if err != nil {
 		fmt.Println("[server] Error writting data to leftover", err.Error())
 		return
 	}
 
-	n, err = s.LeftOver.Read(p)
+	n, err = s.leftOver.Read(p)
 	if err != nil {
 		fmt.Println("[server] Error reading leftover buffer", err.Error())
 		return
 	}
 
 	return n, nil
+}
+
+func (s *Stream) Write(b []byte) {
+	protocol.WriteFrame(s.Conn, s.StreamID, 0, b)
 }

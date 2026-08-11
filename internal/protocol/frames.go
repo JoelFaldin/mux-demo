@@ -1,15 +1,14 @@
-package utils
+package protocol
 
 import (
 	"encoding/binary"
 	"errors"
 	"io"
 	"log"
-	"mux-demo/internal/models"
 	"net"
 )
 
-// Used in the client
+// Used in the client.
 // Given streamId, type and payload, WriteFrame builds a complete slice
 // with data to send to backend.
 func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
@@ -24,16 +23,16 @@ func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
 	conn.Write(finalSlice)
 }
 
-// Used in the server
+// Used in the server.
 // Prepares slices to read from net.Conn, and parses header
 // to extract data
-func ReadFrame(conn net.Conn) (models.Header, []byte, error) {
+func ReadFrame(conn net.Conn) (Header, []byte, error) {
 	header := make([]byte, 9)
 
 	_, err := io.ReadFull(conn, header)
 	if err != nil {
 		if errors.Is(io.EOF, err) {
-			return models.Header{}, nil, io.EOF
+			return Header{}, nil, io.EOF
 		}
 
 		log.Println("[server] Error reading client data", err.Error())
@@ -48,7 +47,7 @@ func ReadFrame(conn net.Conn) (models.Header, []byte, error) {
 	r, err := io.ReadFull(conn, buf)
 	if err != nil {
 		log.Println("[server] Couldnt read client data", err.Error())
-		return models.Header{}, nil, nil
+		return Header{}, nil, nil
 	}
 
 	receivedData := buf[:r]
@@ -56,7 +55,7 @@ func ReadFrame(conn net.Conn) (models.Header, []byte, error) {
 	data_slice := make([]byte, data_length)
 	copy(data_slice, receivedData)
 
-	header_data := models.Header{
+	header_data := Header{
 		StreamID: streamId,
 		Type:     t_type,
 		Length:   data_length,
