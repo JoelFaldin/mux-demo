@@ -28,10 +28,14 @@ func main() {
 
 		d := models.NewData()
 		go func() {
-			ch := d.GetFrame(1)
+			stream := d.GetFrame(1)
+			buf := make([]byte, 4)
 			for {
-				msg := <-ch
-				fmt.Println("Msg from channel:", string(msg))
+				n, err := stream.Read(buf)
+				if err != nil {
+					break
+				}
+				fmt.Println("Msg from channel:", string(buf[:n]))
 			}
 		}()
 		for {
@@ -40,14 +44,9 @@ func main() {
 				break
 			}
 
-			// fmt.Println("Stream Id:", h.StreamID)
-			// fmt.Println("Type:", h.Type)
-			// fmt.Println("Data length:", h.Length)
-			// fmt.Println("Res:", string(res))
+			stream := d.GetFrame(h.StreamID)
 
-			ch := d.GetFrame(h.StreamID)
-
-			ch <- res
+			stream.Chan <- res
 		}
 	}
 }
