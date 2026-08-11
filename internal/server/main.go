@@ -29,7 +29,7 @@ func main() {
 		d := models.NewData()
 		go func() {
 			stream := d.GetFrame(1)
-			buf := make([]byte, 4)
+			buf := make([]byte, 512)
 			for {
 				n, err := stream.Read(buf)
 				if err != nil {
