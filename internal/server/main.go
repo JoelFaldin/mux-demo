@@ -1,12 +1,9 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"mux-demo/internal/models"
-	"mux-demo/internal/protocol"
 	"net"
 )
 
@@ -26,9 +23,10 @@ func main() {
 
 		fmt.Println("[server] Request accepted, processing...")
 
-		d := models.NewData()
+		s := models.NewSession(conn)
+
 		go func() {
-			stream := d.GetFrame(1, conn)
+			stream := s.GetFrame(1, conn)
 			buf := make([]byte, 512)
 			for {
 				n, err := stream.Read(buf)
@@ -38,19 +36,5 @@ func main() {
 				fmt.Println("Msg from channel:", string(buf[:n]))
 			}
 		}()
-		for {
-			h, res, err := protocol.ReadFrame(conn)
-			if err != nil && errors.Is(err, io.EOF) {
-				break
-			}
-
-			stream := d.GetFrame(h.StreamID, conn)
-			if h.Type == byte(protocol.FrameTypeClose) {
-				stream.Close()
-				delete(d.Data, h.StreamID)
-			} else {
-				stream.Chan <- res
-			}
-		}
 	}
 }
