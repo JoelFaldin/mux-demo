@@ -9,21 +9,27 @@ import (
 )
 
 type Session struct {
-	Data      map[uint32]*Stream
-	DataMutex sync.Mutex
+	Data        map[uint32]*Stream
+	DataMutex   sync.Mutex
+	AcceptChann chan *Stream
 }
 
 func NewSession(conn net.Conn) *Session {
 	s := &Session{
-		Data: make(map[uint32]*Stream),
+		Data:        make(map[uint32]*Stream),
+		AcceptChann: make(chan *Stream, 16),
 	}
 
-	go s.ReadLoop(conn)
+	go s.readLoop(conn)
 
 	return s
 }
 
-func (s *Session) ReadLoop(conn net.Conn) {
+// Used on NewSession function.
+// Using a for loop, reads data from net.Conn.
+// If the data's type is Close, closes the channel and notifies the other.
+// If the data's type is of any other type, writes the data into the channel.
+func (s *Session) readLoop(conn net.Conn) {
 	for {
 		h, res, err := protocol.ReadFrame(conn)
 		if err != nil && errors.Is(err, io.EOF) {
@@ -54,9 +60,17 @@ func (d *Session) GetFrame(streamId uint32, conn net.Conn) *Stream {
 			Chan:     make(chan []byte, 10),
 			Conn:     conn,
 		}
+
 		d.Data[streamId] = s
+		d.AcceptChann <- s
+
 		return s
 	} else {
 		return find
 	}
+}
+
+func (s *Session) Accept() *Stream {
+	stream := <-s.AcceptChann
+	return stream
 }
