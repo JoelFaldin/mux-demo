@@ -70,6 +70,9 @@ func (d *Session) GetFrame(streamId uint32, conn net.Conn) *Stream {
 	}
 }
 
+// Used in server, for now in a test goroutine.
+// Waits for any incoming connection. Doesn't need to know StreamId beforehand.
+// Returns *Stream.
 func (s *Session) Accept() *Stream {
 	stream := <-s.AcceptChann
 	return stream
