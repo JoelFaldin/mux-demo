@@ -6,21 +6,25 @@ import (
 	"mux-demo/internal/protocol"
 	"net"
 	"sync"
+	"sync/atomic"
 )
 
 type Session struct {
 	Data        map[uint32]*Stream
 	DataMutex   sync.Mutex
 	AcceptChann chan *Stream
+	nextId      atomic.Uint32
+	Conn        net.Conn
 }
 
 func NewSession(conn net.Conn) *Session {
 	s := &Session{
 		Data:        make(map[uint32]*Stream),
 		AcceptChann: make(chan *Stream, 16),
+		Conn:        conn,
 	}
 
-	go s.readLoop(conn)
+	go s.readLoop()
 
 	return s
 }
@@ -29,14 +33,14 @@ func NewSession(conn net.Conn) *Session {
 // Using a for loop, reads data from net.Conn.
 // If the data's type is Close, closes the channel and notifies the other.
 // If the data's type is of any other type, writes the data into the channel.
-func (s *Session) readLoop(conn net.Conn) {
+func (s *Session) readLoop() {
 	for {
-		h, res, err := protocol.ReadFrame(conn)
+		h, res, err := protocol.ReadFrame(s.Conn)
 		if err != nil && errors.Is(err, io.EOF) {
 			break
 		}
 
-		stream := s.GetFrame(h.StreamID, conn)
+		stream := s.GetFrame(h.StreamID)
 		if h.Type == byte(protocol.FrameTypeClose) {
 			stream.Close()
 			delete(s.Data, h.StreamID)
@@ -49,20 +53,13 @@ func (s *Session) readLoop(conn net.Conn) {
 // Used in server
 // Given streamId, searchs in models.Data map
 // if theres any existent frame with that id.
-func (d *Session) GetFrame(streamId uint32, conn net.Conn) *Stream {
+func (d *Session) GetFrame(streamId uint32) *Stream {
 	d.DataMutex.Lock()
 	defer d.DataMutex.Unlock()
 
 	find, ok := d.Data[streamId]
 	if !ok {
-		s := &Stream{
-			StreamID: streamId,
-			Chan:     make(chan []byte, 10),
-			Conn:     conn,
-		}
-
-		d.Data[streamId] = s
-		d.AcceptChann <- s
+		s := d.newAndRegisterStream(streamId)
 
 		return s
 	} else {
@@ -76,4 +73,25 @@ func (d *Session) GetFrame(streamId uint32, conn net.Conn) *Stream {
 func (s *Session) Accept() *Stream {
 	stream := <-s.AcceptChann
 	return stream
+}
+
+func (s *Session) OpenStream() *Stream {
+	newStreamId := s.nextId.Add(1)
+
+	d := s.newAndRegisterStream(uint32(newStreamId))
+
+	return d
+}
+
+func (s *Session) newAndRegisterStream(strId uint32) *Stream {
+	ses := &Stream{
+		StreamID: strId,
+		Chan:     make(chan []byte, 10),
+		Conn:     s.Conn,
+	}
+
+	s.Data[strId] = ses
+	s.AcceptChann <- ses
+
+	return ses
 }

@@ -26,7 +26,7 @@ func main() {
 		s := models.NewSession(conn)
 
 		go func() {
-			stream := s.GetFrame(1, conn)
+			stream := s.Accept()
 			buf := make([]byte, 512)
 			for {
 				n, err := stream.Read(buf)

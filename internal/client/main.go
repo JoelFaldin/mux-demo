@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"mux-demo/internal/models"
-	"mux-demo/internal/protocol"
 	"net"
 )
 
@@ -14,15 +13,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	protocol.WriteFrame(conn, 1, protocol.FrameTypeNormal, []byte("yo man"))
-	protocol.WriteFrame(conn, 2, protocol.FrameTypeNormal, []byte("yo man 1"))
-	protocol.WriteFrame(conn, 1, protocol.FrameTypeNormal, []byte("yo man 2"))
+	session := models.NewSession(conn)
+	stream := session.OpenStream()
 
-	s := models.Stream{
-		StreamID: 1,
-		Chan:     make(chan []byte, 10),
-		Conn:     conn,
-	}
-
-	s.Close()
+	stream.Write([]byte("algo 1"))
 }
