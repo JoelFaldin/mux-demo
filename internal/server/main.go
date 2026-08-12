@@ -45,8 +45,12 @@ func main() {
 			}
 
 			stream := d.GetFrame(h.StreamID, conn)
-
-			stream.Chan <- res
+			if h.Type == byte(protocol.FrameTypeClose) {
+				stream.Close()
+				delete(d.Data, h.StreamID)
+			} else {
+				stream.Chan <- res
+			}
 		}
 	}
 }

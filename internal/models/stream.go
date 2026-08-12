@@ -2,10 +2,12 @@ package models
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"mux-demo/internal/protocol"
 	"net"
+	"sync"
 )
 
 type Stream struct {
@@ -13,6 +15,7 @@ type Stream struct {
 	Chan     chan []byte
 	leftOver bytes.Buffer
 	Conn     net.Conn
+	once     sync.Once
 }
 
 // Used in server
@@ -40,7 +43,7 @@ func (s *Stream) Read(p []byte) (n int, err error) {
 	}
 
 	n, err = s.leftOver.Read(p)
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		fmt.Println("[server] Error reading leftover buffer", err.Error())
 		return
 	}
@@ -49,5 +52,13 @@ func (s *Stream) Read(p []byte) (n int, err error) {
 }
 
 func (s *Stream) Write(b []byte) {
-	protocol.WriteFrame(s.Conn, s.StreamID, 0, b)
+	protocol.WriteFrame(s.Conn, s.StreamID, protocol.FrameTypeNormal, b)
+}
+
+func (s *Stream) Close() {
+	protocol.WriteFrame(s.Conn, s.StreamID, protocol.FrameTypeClose, []byte{})
+
+	s.once.Do(func() {
+		close(s.Chan)
+	})
 }

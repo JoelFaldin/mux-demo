@@ -11,11 +11,11 @@ import (
 // Used in the client.
 // Given streamId, type and payload, WriteFrame builds a complete slice
 // with data to send to backend.
-func WriteFrame(conn net.Conn, streamId uint32, t_type uint32, payload []byte) {
+func WriteFrame(conn net.Conn, streamId uint32, t_type messageType, payload []byte) {
 	finalSlice := make([]byte, 9+len(payload))
 
 	binary.BigEndian.PutUint32(finalSlice, streamId)
-	finalSlice[4] = byte(t_type)
+	finalSlice[4] = byte(uint32(t_type))
 	binary.BigEndian.PutUint32(finalSlice[5:9], uint32(len(payload)))
 
 	copy(finalSlice[9:], payload)

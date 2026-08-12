@@ -9,7 +9,7 @@ type Header struct {
 type messageType int
 
 const (
-	normal messageType = iota
-	open
-	close
+	FrameTypeNormal messageType = iota
+	FrameTypeOpen
+	FrameTypeClose
 )
