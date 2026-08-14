@@ -1,6 +1,6 @@
 # mux-demo - String multiplexing over a TCP connection
 
-Bridge project build using [Go](https://go.dev/) to understand how tools like ngrok handle different logical connections (_streams_) over a unique TCP connection. It implements a (very simple) custom binary protocol with framing based on headers of fixed length, plus a concurrent layer with goroutines and channels to _demultiplex_ incoming traffic.
+Bridge project built using [Go](https://go.dev/) to understand how tools like ngrok handle different logical connections (_streams_) over a unique TCP connection. It implements a (very simple) custom binary protocol with framing based on headers of fixed length, plus a concurrent layer with goroutines and channels to _demultiplex_ incoming traffic.
 
 ## Project Structure
 
